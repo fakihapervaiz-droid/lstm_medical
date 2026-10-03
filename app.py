@@ -1,7 +1,11 @@
+import os
+import requests
+import pickle
+
 import streamlit as st
 import tensorflow as tf
 import numpy as np
-import pickle
+
 
 # =========================
 # PAGE CONFIG
@@ -11,6 +15,7 @@ st.set_page_config(
     page_icon="🩺",
     layout="centered"
 )
+
 
 # =========================
 # CUSTOM CSS
@@ -64,23 +69,66 @@ st.markdown("""
 
 
 # =========================
+# MODEL SETTINGS
+# =========================
+MODEL_PATH = "medical_lstm_epoch200.keras"
+
+MODEL_URL = (
+    "https://github.com/fakihapervaiz-droid/lstm_medical/"
+    "releases/download/untagged-3c4c5aca9a6901aeea2c/"
+    "medical_lstm_epoch200.keras"
+)
+
+TOKENIZER_PATH = "medical_tokenizer.pkl"
+
+SEQ_LENGTH = 20
+
+
+# =========================
 # LOAD MODEL
 # =========================
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model("medical_lstm_epoch200.keras")
+
+    if not os.path.exists(MODEL_PATH):
+
+        st.info("Downloading medical LSTM model...")
+
+        response = requests.get(
+            MODEL_URL,
+            stream=True,
+            timeout=600
+        )
+
+        response.raise_for_status()
+
+        with open(MODEL_PATH, "wb") as f:
+
+            for chunk in response.iter_content(
+                chunk_size=1024 * 1024
+            ):
+
+                if chunk:
+                    f.write(chunk)
+
+    return tf.keras.models.load_model(MODEL_PATH)
 
 
+# =========================
+# LOAD TOKENIZER
+# =========================
 @st.cache_resource
 def load_tokenizer():
-    with open("medical_tokenizer.pkl", "rb") as f:
+
+    with open(TOKENIZER_PATH, "rb") as f:
         return pickle.load(f)
 
 
+# =========================
+# LOAD RESOURCES
+# =========================
 model = load_model()
 tokenizer = load_tokenizer()
-
-SEQ_LENGTH = 20
 
 
 # =========================
@@ -117,7 +165,9 @@ def generate_medical_text(seed_text, next_words):
         output_word = ""
 
         for word, index in tokenizer.word_index.items():
+
             if index == predicted_word_index:
+
                 output_word = word
                 break
 
