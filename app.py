@@ -75,10 +75,9 @@ MODEL_PATH = "medical_lstm_epoch200.keras"
 
 MODEL_URL = (
     "https://github.com/fakihapervaiz-droid/lstm_medical/"
-    "releases/download/untagged-3c4c5aca9a6901aeea2c/"
+    "releases/download/v2/"
     "medical_lstm_epoch200.keras"
 )
-
 TOKENIZER_PATH = "medical_tokenizer.pkl"
 
 SEQ_LENGTH = 20
